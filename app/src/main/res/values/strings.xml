@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">MyFireBaseProjectWithDb</string>
+    <string name="receiver_demo_text">Reciever text</string>
 </resources>

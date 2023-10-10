@@ -227,6 +227,7 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
             intent.putExtra("userId",user.userid)
             intent.putExtra("name",user.firstName)
             intent.putExtra("image",user.img)
+            intent.putExtra("senderUid",currentUserUID.toString())
             OpenChatRoom(intent)
         }
         catch (e:Exception){

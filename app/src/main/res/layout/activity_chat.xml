@@ -72,6 +72,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
+        tools:listitem="@layout/sent_item"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+
         />
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
@@ -103,6 +106,7 @@
                 android:hint="Enter Your Massage.."
                 android:layout_weight="1"
                 android:layout_marginHorizontal="10dp"
+
                 />
             <ImageView
                 android:layout_width="wrap_content"
