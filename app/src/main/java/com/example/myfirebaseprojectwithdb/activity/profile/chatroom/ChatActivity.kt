@@ -1,6 +1,5 @@
 package com.example.myfirebaseprojectwithdb.activity.profile.chatroom
 
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -9,12 +8,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.myfirebaseprojectwithdb.LoggedUserDetails
 import com.example.myfirebaseprojectwithdb.R
-import com.example.myfirebaseprojectwithdb.User
-import com.example.myfirebaseprojectwithdb.activity.profile.chatroom.Adapter.ChatRcAdapter
+import com.example.myfirebaseprojectwithdb.activity.profile.chatroom.adapters.ChatRcAdapter
 import com.example.myfirebaseprojectwithdb.databinding.ActivityChatBinding
-import com.example.myfirebaseprojectwithdb.myfireobj
 import com.example.myfirebaseprojectwithdb.myfireobj.db
-import com.google.gson.Gson
 
 class ChatActivity : AppCompatActivity() {
     lateinit var binding :ActivityChatBinding
@@ -131,3 +127,7 @@ data class chatMessage(
     var receiverUID:String,
     var msg :String,
 )
+
+data class mdata(
+    var satta:String
+            )
