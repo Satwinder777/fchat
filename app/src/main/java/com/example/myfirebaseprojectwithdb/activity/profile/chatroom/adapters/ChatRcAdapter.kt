@@ -9,7 +9,7 @@ import com.example.myfirebaseprojectwithdb.activity.profile.chatroom.chatMessage
 import com.example.myfirebaseprojectwithdb.databinding.ReceiveTextBinding
 import com.example.myfirebaseprojectwithdb.databinding.SentItemBinding
 
-class ChatRcAdapter(var arr :ArrayList<chatMessage>):
+class ChatRcAdapter(var arr :MutableList<chatMessage>):
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     var SENT_ITEM = 0
@@ -54,6 +54,23 @@ class ChatRcAdapter(var arr :ArrayList<chatMessage>):
         return arr.size
     }
 
+    fun clearData() {
+        arr.clear()
+        notifyDataSetChanged()
+    }
+
+    fun addData(newData: MutableList<chatMessage>) {
+        var insertPosition = arr.size // The position where the new items will be inserted
+
+        newData.forEach {
+            arr.add(it)
+            notifyItemInserted(itemCount-1) // Notify for each inserted item
+//            insertPosition++
+//            satttashergill code  end
+        }
+
+        // Do NOT call notifyDataSetChanged() here.
+    }
 
     class SentchatViewHolder(view:View):RecyclerView.ViewHolder(view) {
         var binding = SentItemBinding.bind(view)
