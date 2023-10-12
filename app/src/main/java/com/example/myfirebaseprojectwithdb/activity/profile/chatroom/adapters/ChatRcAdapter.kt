@@ -1,30 +1,34 @@
 package com.example.myfirebaseprojectwithdb.activity.profile.chatroom.adapters
 
+import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myfirebaseprojectwithdb.R
 import com.example.myfirebaseprojectwithdb.activity.profile.chatroom.chatMessage
 import com.example.myfirebaseprojectwithdb.databinding.ReceiveTextBinding
 import com.example.myfirebaseprojectwithdb.databinding.SentItemBinding
+import com.google.firebase.auth.FirebaseAuth
 
-class ChatRcAdapter(var arr :MutableList<chatMessage>):
+class ChatRcAdapter(var arr :MutableList<chatMessage>,var context : Context,var chatroomId:String):
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     var SENT_ITEM = 0
     var RECEIVE_ITEM = 1
 
-    var ReceiverUID = ""
+
     var SenderUID = ""
 
     override fun getItemViewType(position: Int): Int {
 //        return super.getItemViewType(position)
-        return if (ReceiverUID==arr.get(position).receiverUID){
-            RECEIVE_ITEM
+        return if (FirebaseAuth.getInstance().uid==arr.get(position).fromMsg){
+            SENT_ITEM
         }
         else{
-            SENT_ITEM
+            RECEIVE_ITEM
         }
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -60,14 +64,26 @@ class ChatRcAdapter(var arr :MutableList<chatMessage>):
     }
 
     fun addData(newData: MutableList<chatMessage>) {
-        var insertPosition = arr.size // The position where the new items will be inserted
 
-        newData.forEach {
-            arr.add(it)
-            notifyItemInserted(itemCount-1) // Notify for each inserted item
+        if (newData.isNullOrEmpty()){
+            Log.e("freshChat", "addData: ListEmpty>>$newData", )
+        }else{
+            clearData()
+            notifyDataSetChanged()
+            arr = newData
+            Log.e("freshChat", "addData:11 $newData", )
+            notifyDataSetChanged()
+        }
+//        var insertPosition = arr.size // The position where the new items will be inserted
+//        newData.forEach {
+//            arr.add(it)
+//            notifyItemInserted(insertPosition) // Notify for each inserted item
 //            insertPosition++
 //            satttashergill code  end
-        }
+
+
+
+        Toast.makeText(context, "data added", Toast.LENGTH_SHORT).show()
 
         // Do NOT call notifyDataSetChanged() here.
     }

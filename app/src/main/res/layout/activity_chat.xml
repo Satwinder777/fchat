@@ -74,7 +74,7 @@
         android:layout_weight="1"
         tools:listitem="@layout/sent_item"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-
+        app:stackFromEnd="true"
         />
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
