@@ -51,8 +51,10 @@ class CustomSignUpActivity : AppCompatActivity() {
     var userID:String? = null
     var direction:String ?=null
     var user:User?=null
+    lateinit var profileImg:String
     lateinit var progressDialog :ProgressDialog
     companion object{
+
         val TAG = "SATWINDERQWERASDF"
         const val PICK_IMAGE_REQUEST_CODE = 2001
 //        private val PERMISSION_OPENGALLERY: Array<String> =
@@ -66,6 +68,7 @@ class CustomSignUpActivity : AppCompatActivity() {
         progressDialog = ProgressDialog(this)
         progressDialog.setMessage("Loading...")
         progressDialog.setCancelable(false)
+        profileImg =""
        direction = intent.getStringExtra(naviDirect.LOGGEDLIST_TO_UPDATE.toString())
         try {
             handleUserNavigation()
@@ -116,7 +119,19 @@ class CustomSignUpActivity : AppCompatActivity() {
         binding.SignUp.setOnClickListener {
 
             if (direction != naviDirect.LOGGEDLIST_TO_UPDATE.toString()){
-                profileUri?.let { it1 -> checkValidation(
+//                profileUri?.let { it1 -> checkValidation(
+//
+//                    binding.profileImg
+//                    ,binding.firstnameid
+//                    ,binding.lastnameid
+//                    ,binding.emailSignup
+//                    ,binding.passwordId
+//                    ,binding.confirm
+//                )
+//            }
+
+                checkValidation(
+
                     binding.profileImg
                     ,binding.firstnameid
                     ,binding.lastnameid
@@ -124,11 +139,12 @@ class CustomSignUpActivity : AppCompatActivity() {
                     ,binding.passwordId
                     ,binding.confirm
                 )
-            }
-
+                Log.e("btncall", "onCreate: if block call", )
             }
             else{
                 user?.let { it1 -> updateUser(it1) }
+                Log.e("btncall", "onCreate: else block call", )
+
             }
         }
     }
@@ -171,6 +187,7 @@ class CustomSignUpActivity : AppCompatActivity() {
                    var uri = Uri.fromFile(file)
                     Log.d("MyFile", "onActivityResult: ${uri}")
                     profileUri = uri
+                    profileImg = profileUri.toString()
                 }
                 Glide.with(this)
                     .load(profileUri)
@@ -243,50 +260,79 @@ class CustomSignUpActivity : AppCompatActivity() {
 
     private fun checkValidation(image: ImageView?, firstname :EditText?,lastName :EditText?,email: EditText?,password: EditText?,confirmPassword:EditText){
 
-        val list = listOf(image,firstname,lastName,email,password,confirmPassword)
-        var shouldBreak = false
-        val apassword = list.get(4) as EditText
-        val cpassword = list.get(5) as EditText
-        list.forEach {
-             when(it){
-                is ImageView->{
-                    if (it.drawable==null){
-                        shouldBreak = true
-                        Toast.makeText(this, "please set profile Image", Toast.LENGTH_SHORT).show()
-                    }
-                }
-                is  EditText->{
-                    if (it.text.isEmpty()){
-                        shouldBreak = true
-                        it.setError("Empty data found !!,",ContextCompat.getDrawable(this,R.drawable.error_ic))
+//        val list = listOf(image,firstname,lastName,email,password,confirmPassword)
+//        var shouldBreak = false
+//        val apassword = list.get(4) as EditText
+//        val cpassword = list.get(5) as EditText
+//        list.forEach {
+//             when(it){
+//                is ImageView->{
+//                    if (it.drawable==null){
+//                        shouldBreak = true
+//                        Toast.makeText(this, "please set profile Image", Toast.LENGTH_SHORT).show()
+//                    }
+//                }
+//                is  EditText->{
+//                    if (it.text.isEmpty()){
+//                        shouldBreak = true
+//                        it.setError("Empty data found !!,",ContextCompat.getDrawable(this,R.drawable.error_ic))
+//
+//
+//
+//                    }
+//                    if (it == binding.emailSignup){
+//                        shouldBreak = it.text.toString().isEmailVerified().not()
+//                        if (shouldBreak){
+//                            binding.emailSignup.setError("format Mismatch !!,",ContextCompat.getDrawable(this,R.drawable.error_ic))
+//                        }
+//                    }
+//                }
+//                 else->{
+//                     Log.d(TAG, "checkValidation: $it")}
+//            }
+//            if (shouldBreak) {
+//                Log.d(TAG, "checkValidation: $it $shouldBreak")
+//                return@forEach
+//            }
+//        }
 
+//        if (profileImg.isNullOrBlank()){
+//            Log.e("satta123", "checkValidation: null or empty", )
+//        }else{
+//            Log.e("satta123", "checkValidation: $profileUri", )
+//        }
+        if (profileImg.isNullOrBlank()){
+            Toast.makeText(this, "Image null", Toast.LENGTH_SHORT).show()
+        }else if(firstname?.text.isNullOrBlank()){
+            Toast.makeText(this, "First name blank", Toast.LENGTH_SHORT).show()
+        }else if(lastName?.text.isNullOrBlank()){
+            Toast.makeText(this, "Last name blank", Toast.LENGTH_SHORT).show()
 
+        }else if(email?.text.isNullOrBlank()){
+            Toast.makeText(this, "Email blank", Toast.LENGTH_SHORT).show()
 
-                    }
-                    if (it == binding.emailSignup){
-                        shouldBreak = it.text.toString().isEmailVerified().not()
-                        if (shouldBreak){
-                            binding.emailSignup.setError("format Mismatch !!,",ContextCompat.getDrawable(this,R.drawable.error_ic))
-                        }
-                    }
-                }
-                 else->{
-                     Log.d(TAG, "checkValidation: $it")}
-            }
-            if (shouldBreak) {
-                Log.d(TAG, "checkValidation: $it $shouldBreak")
-                return@forEach
-            }
-        }
-        if (shouldBreak==false && apassword.text.toString()==cpassword.text.toString()){
-            signUp(email!!.text.trim().toString(), password!!.text.trim().toString(), profileUri as Uri,
-                firstname?.text?.trim().toString()
-                ,lastName?.text?.trim().toString(), userID.toString()  )
+        }else if(password?.text.isNullOrBlank()){
+            Toast.makeText(this, "Password  blank", Toast.LENGTH_SHORT).show()
+
+        }else if(confirmPassword?.text.isNullOrBlank()){
+            Toast.makeText(this, "Confirm Password blank", Toast.LENGTH_SHORT).show()
+
         }else{
-            Toast.makeText(this, "something went wrong ", Toast.LENGTH_SHORT).show()
-           binding.confirm.setError("pasword mismatch ",ContextCompat.getDrawable(this,R.drawable.error_ic))
-
+            Toast.makeText(this, "all condition full fill no one is empty", Toast.LENGTH_SHORT).show()
         }
+
+
+
+
+//        if (shouldBreak==false && apassword.text.toString()==cpassword.text.toString()){
+//            signUp(email!!.text.trim().toString(), password!!.text.trim().toString(), profileUri as Uri,
+//                firstname?.text?.trim().toString()
+//                ,lastName?.text?.trim().toString(), userID.toString()  )
+//        }else{
+//            Toast.makeText(this, "something went wrong ", Toast.LENGTH_SHORT).show()
+//           binding.confirm.setError("pasword mismatch ",ContextCompat.getDrawable(this,R.drawable.error_ic))
+//
+//        }
     }
     private fun storetoDb(image: String, firstname :String,lastName :String,email: String,password: String,uid:String){
 

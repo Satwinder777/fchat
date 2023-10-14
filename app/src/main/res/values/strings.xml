@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">MyFireBaseProjectWithDb</string>
     <string name="receiver_demo_text">Reciever text</string>
+    <string name="name">First name</string>
+    <string name="fname">Last name</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="cpassword">Confirm Password</string>
 </resources>
