@@ -44,6 +44,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.URI
 import java.util.*
+import java.util.regex.Pattern
 import kotlin.random.Random
 
 class CustomSignUpActivity : AppCompatActivity() {
@@ -311,28 +312,33 @@ class CustomSignUpActivity : AppCompatActivity() {
         }else if(email?.text.isNullOrBlank()){
             Toast.makeText(this, "Email blank", Toast.LENGTH_SHORT).show()
 
-        }else if(password?.text.isNullOrBlank()){
+        }
+        else if(isEmailValid(email?.text.toString()).not()){
+            Toast.makeText(this, "Please enter valid email", Toast.LENGTH_SHORT).show()
+        } else if(password?.text.isNullOrBlank()){
             Toast.makeText(this, "Password  blank", Toast.LENGTH_SHORT).show()
-
+        } else if(isPasswordValid(password?.text.toString()).not()){
+            Toast.makeText(this, "Must enter strong password", Toast.LENGTH_SHORT).show()
         }else if(confirmPassword?.text.isNullOrBlank()){
             Toast.makeText(this, "Confirm Password blank", Toast.LENGTH_SHORT).show()
 
         }else{
-            Toast.makeText(this, "all condition full fill no one is empty", Toast.LENGTH_SHORT).show()
+
+            if (password?.text.toString()==confirmPassword.text.toString()){
+                signUp(email!!.text.trim().toString(), password!!.text.trim().toString(), profileUri as Uri,
+                    firstname?.text?.trim().toString()
+                    ,lastName?.text?.trim().toString(), userID.toString()  )
+            }else{
+                Toast.makeText(this, "something went wrong ", Toast.LENGTH_SHORT).show()
+                binding.confirm.setError("pasword    mismatch ",ContextCompat.getDrawable(this,R.drawable.error_ic))
+
+            }
+//            Toast.makeText(this, "all condition full fill no one is empty", Toast.LENGTH_SHORT).show()
         }
 
 
 
 
-//        if (shouldBreak==false && apassword.text.toString()==cpassword.text.toString()){
-//            signUp(email!!.text.trim().toString(), password!!.text.trim().toString(), profileUri as Uri,
-//                firstname?.text?.trim().toString()
-//                ,lastName?.text?.trim().toString(), userID.toString()  )
-//        }else{
-//            Toast.makeText(this, "something went wrong ", Toast.LENGTH_SHORT).show()
-//           binding.confirm.setError("pasword mismatch ",ContextCompat.getDrawable(this,R.drawable.error_ic))
-//
-//        }
     }
     private fun storetoDb(image: String, firstname :String,lastName :String,email: String,password: String,uid:String){
 
@@ -485,5 +491,18 @@ class CustomSignUpActivity : AppCompatActivity() {
 
             }
         }
+    private fun isEmailValid(email: String): Boolean {
+        val regexPattern = "^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$"
+        val pattern = Pattern.compile(regexPattern)
+        val matcher = pattern.matcher(email)
+        return matcher.matches()
+    }
+    private fun isPasswordValid(email: String): Boolean {
+        val regexPattern = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=!*])(?!.*\\s).{8,}$"
+        val pattern = Pattern.compile(regexPattern)
+        val matcher = pattern.matcher(email)
+        return matcher.matches()
+    }
+
 
 }

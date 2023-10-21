@@ -35,12 +35,16 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.net.toUri
 import com.example.myfirebaseprojectwithdb.activity.profile.ProfileActivity
 import com.example.myfirebaseprojectwithdb.activity.profile.chatroom.ChatActivity
+import com.example.myfirebaseprojectwithdb.adapter.GroupChatModel
 import com.example.myfirebaseprojectwithdb.application.MyApplication.Companion.sharedPref
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.play.integrity.internal.l
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.EventListener
+import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.QuerySnapshot
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 
@@ -131,8 +135,8 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
 
     }
     @SuppressLint("NotifyDataSetChanged")
-    private suspend fun getAllUser():MutableList<User>{
-        val listUser:MutableList<User> = mutableListOf<User>()
+    private suspend fun getAllUser():MutableList<Any>{
+        val listUser:MutableList<Any> = mutableListOf()
 
         val qyuerSnap = db.collection("users")
             .get().await()
@@ -146,11 +150,15 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
 
         }
         listUser?.removeIf {
+
+            it as User
             Log.e("mData1239", "getAllUser:removed ${it.userid}>>${user?.userid}", )
 
             it.userid==user?.userid
 
         }
+        listUser.add(GroupChatModel("The Boys Group","https://wallpapers.com/images/featured/the-boys-1fe3hnl120ch1bc6.webp","under development"))
+
 
         GlobalScope.launch {
             try {
@@ -233,26 +241,56 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
         catch (e:Exception){
             Log.e("DownLoadListner", "itemCliked: $e", )
         }
-
-
     }
+
+    override fun ongroupItemClicked() {
+        var name = "The Boys Group"
+
+        var img ="https://wallpapers.com/images/featured/the-boys-1fe3hnl120ch1bc6.webp"
+
+        try {
+            val intent = Intent(this,ChatActivity::class.java)
+            intent.putExtra("userId",user?.userid)
+            intent.putExtra("name",name)
+            intent.putExtra("image",img)
+            intent.putExtra("senderUid",currentUserUID.toString())
+            OpenChatRoom(intent)
+        }
+        catch (e:Exception){
+            Log.e("DownLoadListner", "itemCliked: $e", )
+        }
+    }
+
     fun OpenChatRoom(intent: Intent){
         startActivity(intent)
     }
 
 
     fun deleteUser1(user: User){
+//
+//        myfireobj.db.collection("users").document(user.userid.toString())
+//            .delete()
+//            .addOnCompleteListener {
+//                Toast.makeText(this, "successfully deleted user", Toast.LENGTH_SHORT).show()
+//                reInitdata()
+//                deleteFromStorage(user)
+//            }
+//            .addOnFailureListener {
+//                Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+//            }
 
-        myfireobj.db.collection("users").document(user.userid.toString())
+        myfireobj.db.collection("users").addSnapshotListener(object : EventListener<QuerySnapshot> {
+            override fun onEvent(value: QuerySnapshot?, error: FirebaseFirestoreException?) {
+                myfireobj.db.collection("users").document(user.userid.toString())
             .delete()
             .addOnCompleteListener {
-                Toast.makeText(this, "successfully deleted user", Toast.LENGTH_SHORT).show()
                 reInitdata()
-                deleteFromStorage(user)
+
+            }.addOnFailureListener{
+                        Toast.makeText(this@LoggedUserDetails, "failed to delete", Toast.LENGTH_SHORT).show()
+                    }
             }
-            .addOnFailureListener {
-                Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
-            }
+        })
     }
 
         fun deleteFromStorage(user: User){
@@ -309,7 +347,7 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
     }
     private fun HandleListner()
     {
-        var list = mutableListOf<User>()
+        var list = mutableListOf<Any>()
         db.collection("users").addSnapshotListener { value, error ->
 
             try {
@@ -322,6 +360,7 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
 //            fdfd
 
                     list?.removeIf {
+                        it as User
                         Log.e("mData1239", "getAllUser:removed ${it.userid}>>${user?.userid}",)
                         it.userid == user?.userid
                     }

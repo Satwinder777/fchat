@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:paddingHorizontal="20dp"
+    android:background="#D1D5B3"
+    android:orientation="horizontal">
+
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="50dp"
+        >
+       <ImageView
+           android:id="@+id/grpchatprofile"
+           android:layout_width="50dp"
+           android:layout_height="50dp"
+           android:src="@drawable/profile_img"/>
+    </androidx.cardview.widget.CardView>
+    <androidx.appcompat.widget.LinearLayoutCompat
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/grouptitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="chatroom"
+            android:textAlignment="center"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+
+            />
+        <TextView
+            android:id="@+id/lastmsg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="naresh send last msg "
+            android:textAlignment="center"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+
+            />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+</androidx.appcompat.widget.LinearLayoutCompat>
