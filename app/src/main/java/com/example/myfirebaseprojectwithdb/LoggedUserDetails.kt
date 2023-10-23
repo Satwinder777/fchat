@@ -128,7 +128,7 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
         GlobalScope.launch {
             launch(Dispatchers.IO){
                 user  = getCurrentUserDetails(currentUserUID.toString())
-                var data = getAllUser()
+                getAllUser()
 //                        Log.e("sherGillSatta112", "onCreate:user is >>$user >>list== $data", )
             }
         }
@@ -150,10 +150,7 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
 
         }
         listUser?.removeIf {
-
             it as User
-            Log.e("mData1239", "getAllUser:removed ${it.userid}>>${user?.userid}", )
-
             it.userid==user?.userid
 
         }
@@ -281,17 +278,20 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
 
         myfireobj.db.collection("users").addSnapshotListener(object : EventListener<QuerySnapshot> {
             override fun onEvent(value: QuerySnapshot?, error: FirebaseFirestoreException?) {
-                myfireobj.db.collection("users").document(user.userid.toString())
-            .delete()
-            .addOnCompleteListener {
+//                myfireobj.db.collection("users").document(user.userid.toString())
+//            .delete()
+//            .addOnCompleteListener {
+//
+//            }.addOnFailureListener{
+//                        Toast.makeText(this@LoggedUserDetails, "failed to delete", Toast.LENGTH_SHORT).show()
+//                    }
                 reInitdata()
 
-            }.addOnFailureListener{
-                        Toast.makeText(this@LoggedUserDetails, "failed to delete", Toast.LENGTH_SHORT).show()
-                    }
             }
         })
     }
+
+
 
         fun deleteFromStorage(user: User){
                 var fileRef = storageRef.child("images/${user.userid}")

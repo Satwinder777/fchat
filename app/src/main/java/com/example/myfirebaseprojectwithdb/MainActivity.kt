@@ -29,8 +29,10 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.tasks.OnCompleteListener
 
 import com.google.firebase.FirebaseException
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.ListResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -67,7 +69,7 @@ class MainActivity : AppCompatActivity() {
     isUserLogged()
     handleIntentData()
     initgoogleLogin()
-
+    msghndle()
 
         binding.signUpId.setOnClickListener {
                startActivity(Intent(this,CustomSignUpActivity::class.java))
@@ -300,6 +302,22 @@ class MainActivity : AppCompatActivity() {
             .addOnFailureListener {
                 Log.e("saveImagetoStorage", "saveImgStorage: exp>>$it ", )
             }
+    }
+    fun msghndle(){
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w("satta123", "Fetching FCM registration token failed", task.exception)
+                return@OnCompleteListener
+            }
+
+            // Get new FCM registration token
+            val token = task.result
+
+            // Log and toast
+//            val msg = getString(R.string.msg_token_fmt, )
+            Log.d("satta123", token)
+            Toast.makeText(baseContext, token, Toast.LENGTH_SHORT).show()
+        })
     }
     private fun handleIntentData(){
         var data = intent.getStringExtra(navChain.LOGGED_USER_TO_MAIN.toString())

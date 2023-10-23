@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "742800994084",
+    "firebase_url": "https://userloginfirestorestorage-default-rtdb.firebaseio.com",
     "project_id": "userloginfirestorestorage",
     "storage_bucket": "userloginfirestorestorage.appspot.com"
   },

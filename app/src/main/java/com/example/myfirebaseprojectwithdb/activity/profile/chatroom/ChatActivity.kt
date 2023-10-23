@@ -57,6 +57,7 @@ class ChatActivity : AppCompatActivity() {
             .into(binding.senderProfile)
         binding.senderName.setText(receivername.toString())
         chatrc = binding.chatrc
+        chatrc.scrollToPosition(0)
 
 //        if (receiveruid != null) {
 //            getAllMsg(receiveruid)
@@ -90,6 +91,10 @@ class ChatActivity : AppCompatActivity() {
             userid2+"_"+userid1
         }
     }
+    fun checkGroup(){
+
+    }
+
 
     private fun handleChatListner(receiverUID: String){
         db.collection("chatRooms")

@@ -35,6 +35,7 @@ import com.example.myfirebaseprojectwithdb.myfireobj.auth
 import com.example.myfirebaseprojectwithdb.myfireobj.database
 import com.example.myfirebaseprojectwithdb.myfireobj.storage
 import com.example.myfirebaseprojectwithdb.myfireobj.storageRef
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -120,16 +121,6 @@ class CustomSignUpActivity : AppCompatActivity() {
         binding.SignUp.setOnClickListener {
 
             if (direction != naviDirect.LOGGEDLIST_TO_UPDATE.toString()){
-//                profileUri?.let { it1 -> checkValidation(
-//
-//                    binding.profileImg
-//                    ,binding.firstnameid
-//                    ,binding.lastnameid
-//                    ,binding.emailSignup
-//                    ,binding.passwordId
-//                    ,binding.confirm
-//                )
-//            }
 
                 checkValidation(
 
@@ -144,7 +135,7 @@ class CustomSignUpActivity : AppCompatActivity() {
             }
             else{
                 user?.let { it1 -> updateUser(it1) }
-                Log.e("btncall", "onCreate: else block call", )
+//                Log.e("btncall", "onCreate: else block call", )
 
             }
         }
@@ -209,46 +200,60 @@ class CustomSignUpActivity : AppCompatActivity() {
 
     private fun signUp(email:String,password:String,img:Uri,fname:String,lname:String,uid:String){
 
-        storageRef.child("images/${uid}").putFile(img)
-            .addOnCompleteListener { task->
-                val downloadUrl = task.result.storage.downloadUrl
+        GlobalScope.launch (Dispatchers.IO){
+//            var data = downloadUrl.await()
+            loginUsingEmailPassword(email, password,fname, lname)
 
-                GlobalScope.launch (Dispatchers.IO){
-                    var data = downloadUrl.await()
-                    loginUsingEmailPassword(email, password,data.toString(),fname, lname)
+        }
+//        Toast.makeText(this, "image uploaded", Toast.LENGTH_SHORT).show()
 
-                }
-                Toast.makeText(this, "image uploaded", Toast.LENGTH_SHORT).show()
-            }.addOnFailureListener {
-                progressDialog.dismiss()
-                Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
-            }.addOnProgressListener{
-                taskSnapshot->
-                var progress = (100.0 * taskSnapshot.bytesTransferred / taskSnapshot.totalByteCount).toInt()
-
-                progressDialog.setTitle("uploading image $progress")
-
-                progressDialog.show()
-            }
 
 
     }
-    private fun loginUsingEmailPassword(email:String,password:String,imageuri: String,fname:String,lname:String){
+    private fun  loginUsingEmailPassword(email:String,password:String,fname:String,lname:String){
         myfireobj.auth.createUserWithEmailAndPassword(email.trim(), password.trim())
             .addOnCompleteListener {
-                userID = auth.currentUser?.uid
-                if(it.isSuccessful){
-                    Log.d(TAG+1, "signUp: ${it.result.user?.email}>>${it.result.user?.displayName}>>${userID}>>${userID}")
-                    storetoDb(
-                        imageuri,
-                        fname,
-                        lname,
-                        email,
-                        password,
-                        userID.toString()
-                    )
+
+
+               val demoUser = auth.currentUser?.uid
+                Log.e("demousers", "loginUsingEmailPassword1: $demoUser>>", )
+                if(it.isSuccessful&&demoUser.isNullOrBlank().not()){
+
+
+//                    Log.e(TAG, "loginUsingEmailPassword2: $demoUser>>", )
+
+                    storageRef.child("images/${demoUser}").putFile(profileUri!!)
+                        .addOnCompleteListener { task->
+                            GlobalScope.launch (Dispatchers.IO){
+                                val imageuri = task.result.storage.downloadUrl.await()
+                                storetoDb(
+                                    imageuri.toString(),
+                                    fname,
+                                    lname,
+                                    email,
+                                    password,
+                                    demoUser.toString()
+                                )
+                            }
+
+
+                        }.addOnFailureListener {
+                            progressDialog.dismiss()
+                            Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+                        }.addOnProgressListener{
+                                taskSnapshot->
+                            var progress = (100.0 * taskSnapshot.bytesTransferred / taskSnapshot.totalByteCount).toInt()
+                            progressDialog.setTitle("uploading image $progress")
+                            progressDialog.show()
+                        }
+//                    Log.d(TAG+1, "signUp: ${it.result.user?.email}>>${it.result.user?.displayName}>>${userID}>>${userID}")
+
+                }else{
+
+                    Toast.makeText(this, "userid>> $userID", Toast.LENGTH_SHORT).show()
+
                 }
-                Toast.makeText(this, "welcome $fname", Toast.LENGTH_SHORT).show()
+//                Toast.makeText(this, "welcome $fname", Toast.LENGTH_SHORT).show()
 
                 progressDialog.dismiss()
             }
@@ -344,20 +349,12 @@ class CustomSignUpActivity : AppCompatActivity() {
 
 
         var user = User(image, firstname, lastName, email, password,uid)
-        Log.e(TAG+525, "storetoDb: $user", )
-        myfireobj.db.collection("users").document(userID.toString())
+        myfireobj.db.collection("users").document(uid.toString())
             .set(user).addOnCompleteListener {
                 sharedPref?.edit()?.putString(phref.USER_UID.toString(),uid)
-//                finish()snvn
                 val resultIntent = Intent()
-//                var bundle = Bundle()
-//
-//
-//                bundle.putParcelable()
-//                resultIntent.putExtra("result_key", bundle) // You can put any data you want
                 setResult(Activity.RESULT_OK, resultIntent)
                 finish()
-//                openIntent()
             }
             .addOnFailureListener {
                 Log.d(TAG, "storetoDb: $it")
@@ -405,7 +402,7 @@ class CustomSignUpActivity : AppCompatActivity() {
             binding.emailSignup.setText(email)
             binding.passwordId.setText(password)
             binding.SignUp.setText("UpdateUser")
-            binding.confirm.visibility = View.GONE
+//            binding.confirm.visibility = View.GONE
 
         }else{
             Log.d(TAG, "handleUserNavigation: signUpscreen else $direction ")
@@ -423,24 +420,45 @@ class CustomSignUpActivity : AppCompatActivity() {
             "userid" to userID
 
         )
-        myfireobj.db.collection("users").document(user.userid.toString())
-            .set(updatedData, SetOptions.merge())
-            .addOnCompleteListener {
-                   onBackPressed()
-//                this.finish()
-//                startActivity(Intent(this,LoggedUserDetails::class.java))
-                val resultIntent = Intent()
-//                resultIntent.putExtra("result_key", "result_data") // You can put any data you want
-                setResult(Activity.RESULT_OK, resultIntent)
-                finish()
+        if (isEmailValid(binding.emailSignup.text.toString().trim())){
+            if (auth.currentUser!!.email!=binding.emailSignup.text.toString()){
+                auth.currentUser?.updateEmail("sattadev@gmail.com")
+                    ?.addOnCompleteListener {
+                        myfireobj.db.collection("users").document(user.userid.toString())
+                            .set(updatedData, SetOptions.merge())
+                            .addOnCompleteListener {
+                                onBackPressed()
 
-                Log.e("bitmapHandle", "updateUser: ${user.firstName},${user.email}", )
-                updateStorage(user.email.toString(), profileUri!!,)
+                                val resultIntent = Intent()
+                                resultIntent.putExtra("firstName",binding.firstnameid.text.toString())
+                                resultIntent.putExtra("lastName" ,binding.lastnameid.text.toString())
+                                resultIntent.putExtra("email" , binding.emailSignup.text.toString())
+                                resultIntent.putExtra("password" , binding.passwordId.text.toString())
+                                resultIntent.putExtra("img" , profileUri)
+                                resultIntent.putExtra("userid" , userID)
+                                setResult(Activity.RESULT_OK, resultIntent)
+                                finish()
+
+                                Log.e("bitmapHandle", "updateUser: ${user.firstName},${user.email}", )
+                                updateStorage(user.email.toString(), profileUri!!,)
+
+                            }
+                            .addOnFailureListener {
+                                Log.e("bitmapHandle", "updateUser: exp : >>$it", )
+                            }
+                        Toast.makeText(this, "email updated!!>>${binding.emailSignup.text}", Toast.LENGTH_SHORT).show()
+                    }
+                    ?.addOnFailureListener {
+                        Toast.makeText(this, "${auth.currentUser!!.email}", Toast.LENGTH_SHORT).show()
+                        Log.e("addfail", "updateUser: ${it.message}", )
+                    }
 
             }
-            .addOnFailureListener {
-                Log.e("bitmapHandle", "updateUser: exp : >>$it", )
-            }
+        }else{
+            Toast.makeText(this, "please Enter Strong Email", Toast.LENGTH_SHORT).show()
+            binding.emailSignup.text.clear()
+
+        }
 
     }
     private fun updateStorage(oldFile:String,newFileUri:Uri){

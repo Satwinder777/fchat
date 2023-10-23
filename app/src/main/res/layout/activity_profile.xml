@@ -55,7 +55,7 @@
 
         </androidx.cardview.widget.CardView>
 
-        <EditText
+        <TextView
             android:id="@+id/profileUserName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -67,11 +67,44 @@
             android:textSize="20sp"
             android:textStyle="bold" />
 
+        <TextView
+            android:id="@+id/user_id1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:background="@android:color/transparent"
+            android:text="Satwinder Singh"
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/password1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="30dp"
+            android:singleLine="true"
+            android:background="@android:color/transparent"
+            android:text="Satwinder Singh"
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/email1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:background="@android:color/transparent"
+            android:text="Satwinder Singh"
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
         <Button
             android:id="@+id/saveProfile"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Save"
+            android:text="Edit"
             android:layout_gravity="center"
             />
     </LinearLayout>

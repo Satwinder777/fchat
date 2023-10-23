@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 import com.example.myfirebaseprojectwithdb.myfireobj
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
+import com.google.firebase.messaging.FirebaseMessaging
 
 class MyApplication :Application() {
 
@@ -27,6 +28,9 @@ class MyApplication :Application() {
                 .build()
             FirebaseApp.initializeApp(context, options)
         }
+
+        FirebaseMessaging.getInstance().isAutoInitEnabled = true
+
 
     }
 

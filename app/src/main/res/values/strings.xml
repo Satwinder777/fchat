@@ -6,4 +6,5 @@
     <string name="email">Email</string>
     <string name="password">Password</string>
     <string name="cpassword">Confirm Password</string>
+    <string name="demo_msg">this is a sent massage </string>
 </resources>

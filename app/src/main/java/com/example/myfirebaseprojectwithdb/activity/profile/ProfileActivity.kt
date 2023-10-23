@@ -86,8 +86,24 @@ class ProfileActivity : AppCompatActivity() {
             checkPermissionCustom(this)
         }
         binding.saveProfile.setOnClickListener {
-            updateUser(user)
+//            updateUser(user)
+           var intent = Intent(this,CustomSignUpActivity::class.java)
+            intent.putExtra(naviDirect.LOGGEDLIST_TO_UPDATE.toString(),naviDirect.LOGGEDLIST_TO_UPDATE.toString())
+
+
+//            var intent = Intent(this,CustomSignUpActivity::class.java)
+//            intent.putExtra(naviDirect.LOGGEDLIST_TO_UPDATE.toString(),naviDirect.LOGGEDLIST_TO_UPDATE.toString())
+            intent.putExtra(userCodes.FIRST_NAME.toString(),user.firstName)
+            intent.putExtra(userCodes.LAST_NAME.toString(),user.lastName)
+            intent.putExtra(userCodes.EMAIL.toString(),user.email)
+            intent.putExtra(userCodes.PASSWORD.toString(),user.password)
+            intent.putExtra(userCodes.PROFILE_IMG.toString(),user.img)
+            intent.putExtra(userCodes.User_Id.toString(),user.userid)
+            startActivityForResult(intent,code.updatecode)
+//            startActivity(intent)
+
             finish()
+
         }
         binding.logOutBtn.setOnClickListener {
             handleLogout()
@@ -179,6 +195,31 @@ class ProfileActivity : AppCompatActivity() {
             Log.e("onactivityresult", "onActivityResult: $requestCode", )
 
         }
+
+        when(requestCode){
+            2001->{
+                var fname = data?.getStringExtra("firstName")
+                var lname =  data?.getStringExtra("lastName")
+                var email = data?.getStringExtra("email")
+               var password = data?.getStringExtra("password")
+               var img =  data?.getStringExtra("img")
+                var userid = data?.getStringExtra("userid")
+
+                Glide.with(this)
+                    .load(img)
+                    .placeholder(R.drawable.profile_img) // Placeholder image while loading
+                    .error(R.drawable.error_ic) // Image to display if loading fails
+                    .into(binding.ProfileImg)
+                binding.profileUserName.setText("$fname $lname")
+                binding.userId1.setText(userid)
+                binding.password1.setText(password)
+                binding.email1.setText(email)
+            }
+            else->{
+
+                //null
+            }
+        }
     }
 
     override fun onRequestPermissionsResult(
@@ -253,4 +294,6 @@ class ProfileActivity : AppCompatActivity() {
             progressDialog.dismiss()
         }
     }
+
+
 }
