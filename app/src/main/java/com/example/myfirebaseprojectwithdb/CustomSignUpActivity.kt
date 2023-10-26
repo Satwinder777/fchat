@@ -37,6 +37,7 @@ import com.example.myfirebaseprojectwithdb.myfireobj.storage
 import com.example.myfirebaseprojectwithdb.myfireobj.storageRef
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -71,7 +72,10 @@ class CustomSignUpActivity : AppCompatActivity() {
         progressDialog.setMessage("Loading...")
         progressDialog.setCancelable(false)
         profileImg =""
-       direction = intent.getStringExtra(naviDirect.LOGGEDLIST_TO_UPDATE.toString())
+
+
+
+        direction = intent.getStringExtra(naviDirect.LOGGEDLIST_TO_UPDATE.toString())
         try {
             handleUserNavigation()
         }
@@ -224,6 +228,8 @@ class CustomSignUpActivity : AppCompatActivity() {
 
                     storageRef.child("images/${demoUser}").putFile(profileUri!!)
                         .addOnCompleteListener { task->
+
+
                             GlobalScope.launch (Dispatchers.IO){
                                 val imageuri = task.result.storage.downloadUrl.await()
                                 storetoDb(
@@ -232,7 +238,8 @@ class CustomSignUpActivity : AppCompatActivity() {
                                     lname,
                                     email,
                                     password,
-                                    demoUser.toString()
+                                    demoUser.toString(),
+
                                 )
                             }
 
@@ -347,18 +354,27 @@ class CustomSignUpActivity : AppCompatActivity() {
     }
     private fun storetoDb(image: String, firstname :String,lastName :String,email: String,password: String,uid:String){
 
+        var fcm = ""
+        FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+            // Use 'token' to send messages to this device
+            fcm = token
+            var user = User(image, firstname, lastName, email, password,uid,fcm)
+            myfireobj.db.collection("users").document(uid.toString())
+                .set(user).addOnCompleteListener {
+                    sharedPref?.edit()?.putString(phref.USER_UID.toString(),uid)
+                    val resultIntent = Intent()
+                    setResult(Activity.RESULT_OK, resultIntent)
+                    finish()
+                }
+                .addOnFailureListener {
+                    Log.d(TAG, "storetoDb: $it")
+                }
+            Log.e("testcase2", "onCreate: token>>$token", )
+        }.addOnFailureListener { e ->
+            Toast.makeText(this, "$e", Toast.LENGTH_SHORT).show()
+            // Handle the failure to retrieve the token
+        }
 
-        var user = User(image, firstname, lastName, email, password,uid)
-        myfireobj.db.collection("users").document(uid.toString())
-            .set(user).addOnCompleteListener {
-                sharedPref?.edit()?.putString(phref.USER_UID.toString(),uid)
-                val resultIntent = Intent()
-                setResult(Activity.RESULT_OK, resultIntent)
-                finish()
-            }
-            .addOnFailureListener {
-                Log.d(TAG, "storetoDb: $it")
-            }
     }
     private fun openIntent(){
         startActivity(Intent(this,LoggedUserDetails::class.java))

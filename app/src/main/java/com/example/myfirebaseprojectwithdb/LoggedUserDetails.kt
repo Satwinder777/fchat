@@ -233,6 +233,8 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
             intent.putExtra("name",user.firstName)
             intent.putExtra("image",user.img)
             intent.putExtra("senderUid",currentUserUID.toString())
+            intent.putExtra("fcm_token",user.fcmToken)
+
             OpenChatRoom(intent)
         }
         catch (e:Exception){
@@ -251,6 +253,7 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
             intent.putExtra("name",name)
             intent.putExtra("image",img)
             intent.putExtra("senderUid",currentUserUID.toString())
+            intent.putExtra("fcm_token",user?.fcmToken)
             OpenChatRoom(intent)
         }
         catch (e:Exception){
@@ -338,7 +341,7 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
    private fun logoutOperation(){
 
        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-           .requestIdToken(getString(R.string.default_web_client_id))
+           .requestIdToken(getString(com.firebase.ui.auth.R.string.default_web_client_id))
            .requestEmail()
            .build()
 
@@ -458,7 +461,12 @@ data class User(
     var password:String,
 
     @SerializedName("userid")
-    var userid:String?=null
+    var userid:String?=null,
+
+    @SerializedName("fcmToken")
+    var fcmToken:String?=null
+
+
 //)
 )
 /**

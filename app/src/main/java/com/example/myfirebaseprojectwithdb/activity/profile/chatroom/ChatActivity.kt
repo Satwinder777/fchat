@@ -2,6 +2,7 @@ package com.example.myfirebaseprojectwithdb.activity.profile.chatroom
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Message
 import android.util.Log
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
@@ -11,8 +12,11 @@ import com.example.myfirebaseprojectwithdb.R
 import com.example.myfirebaseprojectwithdb.activity.profile.chatroom.adapters.ChatRcAdapter
 import com.example.myfirebaseprojectwithdb.databinding.ActivityChatBinding
 import com.example.myfirebaseprojectwithdb.myfireobj.db
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
-import java.util.*
+import java.util.Date
+
 import kotlin.collections.ArrayList
 
 class ChatActivity : AppCompatActivity() {
@@ -37,6 +41,7 @@ class ChatActivity : AppCompatActivity() {
         var receiverimage = intent.getStringExtra("image")
         var receiveruid = intent.getStringExtra("userId")
         var senderuid = intent.getStringExtra("senderUid")
+        var fcm_token = intent.getStringExtra("fcm_token")
         arr = arrayListOf<chatMessage>()
         chatRoomId  = getChatRoomId(senderuid!!,receiveruid!!)
         Log.e(TAG, "initData: $receiveruid", )
@@ -44,7 +49,7 @@ class ChatActivity : AppCompatActivity() {
             Toast.makeText(this, "under development!!", Toast.LENGTH_SHORT).show()
         }
         binding.sendbtn.setOnClickListener {
-            sendMsg(senderuid.toString(),receiveruid.toString(),binding.editmsg.text.toString())
+            sendMsg(senderuid.toString(),receiveruid.toString(),binding.editmsg.text.toString(),fcm_token?:"sattanull")
             binding.editmsg.text.clear()
 //            Toast.makeText(this, "under development!!", Toast.LENGTH_SHORT).show()
         }
@@ -67,8 +72,8 @@ class ChatActivity : AppCompatActivity() {
     }
 
 
-    fun sendMsg(senderUID: String,receiverUID: String,msg: String){
-        var chatInst =  chatMessage(senderUID, receiverUID, msg,Date().time)
+    fun sendMsg(senderUID: String,receiverUID: String,msg: String,fcm_token:String){
+        var chatInst =  chatMessage(senderUID, receiverUID, msg, Date().time)
         db.collection("chatRooms")
             .document(chatRoomId)
             .collection("messages")
@@ -76,6 +81,17 @@ class ChatActivity : AppCompatActivity() {
             .addOnSuccessListener{
                 Toast.makeText(this, "data updated!!", Toast.LENGTH_SHORT).show()
                 Log.e(TAG, "sendMsg: ${it.id}", )
+
+                var map = hashMapOf<String,String>()
+                map["title"] = "satwinder"
+                map["body"] = "satwindershergill"
+                val message = RemoteMessage.Builder(fcm_token)
+                    .setData(mapOf("msg" to "dsd")) // Add your message content
+                    .build()
+                FirebaseMessaging.getInstance().send(message)
+
+
+//                FirebaseMessaging.getInstance().send()
             }
             .addOnFailureListener {
                 Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
