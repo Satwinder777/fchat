@@ -11,10 +11,16 @@ import com.example.myfirebaseprojectwithdb.LoggedUserDetails
 import com.example.myfirebaseprojectwithdb.R
 import com.example.myfirebaseprojectwithdb.activity.profile.chatroom.adapters.ChatRcAdapter
 import com.example.myfirebaseprojectwithdb.databinding.ActivityChatBinding
+import com.example.myfirebaseprojectwithdb.fcm.model.FCMRequest
+import com.example.myfirebaseprojectwithdb.fcm.model.FCMResponse
 import com.example.myfirebaseprojectwithdb.myfireobj.db
+import com.example.myfirebaseprojectwithdb.retrofit.RetroIns
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.Date
 
 import kotlin.collections.ArrayList
@@ -79,18 +85,39 @@ class ChatActivity : AppCompatActivity() {
             .collection("messages")
             .add(chatInst)
             .addOnSuccessListener{
-                Toast.makeText(this, "data updated!!", Toast.LENGTH_SHORT).show()
-                Log.e(TAG, "sendMsg: ${it.id}", )
+//                Toast.makeText(this, "data updated!!", Toast.LENGTH_SHORT).show()
+//                Log.e(TAG, "sendMsg: ${it.id}", )
 
                 var map = hashMapOf<String,String>()
                 map["title"] = "satwinder"
                 map["body"] = "satwindershergill"
-                val message = RemoteMessage.Builder(fcm_token)
-                    .setData(mapOf("msg" to "dsd")) // Add your message content
-                    .build()
-                FirebaseMessaging.getInstance().send(message)
+//                val message = RemoteMessage.Builder(fcm_token)
+//                    .setData(mapOf("msg" to "dsd")) // Add your message content
+//                    .build()
+//                FirebaseMessaging.getInstance().send(message)
 
+                Log.e("myfcm", "sendMsg: $fcm_token", )
+                val message = FCMRequest(fcm_token, map)
 
+                RetroIns.fcmservice.sendNotification(message)
+                    .enqueue(object : Callback<FCMResponse> {
+                        override fun onResponse(call: Call<FCMResponse>, response: Response<FCMResponse>) {
+                            if (response.isSuccessful) {
+                                val fcmResponse = response.body()
+                                Log.e("testcase1212", "onSuccess: ${fcmResponse}", )
+
+                            } else {
+                                Log.e("testcase1212", "onSuccess: not success>>${response.message()}", )
+
+                            }
+                        }
+
+                        override fun onFailure(call: Call<FCMResponse>, t: Throwable) {
+//                Toast.makeText(, "${t.message}", Toast.LENGTH_SHORT).show()
+                            Log.e("testcase1212", "onFailure: ${t.message}", )
+                        }
+
+                    })
 //                FirebaseMessaging.getInstance().send()
             }
             .addOnFailureListener {

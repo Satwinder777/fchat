@@ -15,6 +15,7 @@ import android.provider.Settings
 import android.util.Log
 import android.widget.RemoteViews
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -28,6 +29,7 @@ val channelId = "SHER_GILL_4983"
 val channelNAme = "SHER_GILL_Satta"
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
+//    @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("MissingPermission")
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         // Handle the FCM message here
@@ -35,8 +37,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val notificationData = remoteMessage.notification
         val title = notificationData?.title!!
         val message = notificationData?.body!!
-        showNotification(this,title?:"satta", message?:"shergill")
+//        showNotification(this,title?:"satta", message?:"shergill")
 
+        myFunction(title,message)
 
 
         Log.e("testcase1212", "onMessageReceived: call testcase msg>> ", )
@@ -156,6 +159,46 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }
     }
 
+//@RequiresApi(Build.VERSION_CODES.O)
+fun myFunction(title: String,body: String){
+    // Create a notification channel
+//    val notificationChannel = NotificationChannel(
+//            channelId,
+//        channelNAme,
+//        NotificationManager.IMPORTANCE_DEFAULT
+//    )
+//    notificationChannel.description = "Channel Description new"
+//
+//// Register the channel with the system
+//    val notificationManager = getSystemService(NotificationManager::class.java)
+//    notificationManager.createNotificationChannel(notificationChannel)
 
+//    val builder = NotificationCompat.Builder(this, channelId)
+//        .setSmallIcon(R.drawable.profile_img)
+//        .setContentTitle(title)
+//        .setContentText(body)
+//        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+    val builder = NotificationCompat.Builder(this, channelId)
+        .setSmallIcon(R.drawable.profile_img) // Set your notification icon
+        .setContentTitle(title)
+        .setContentText(body)
+        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        .setAutoCancel(true)
+//        .setCustomBigContentView(remoteView())
+
+    val notificationManager1 = NotificationManagerCompat.from(this)
+    if (ActivityCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) != PackageManager.PERMISSION_GRANTED
+    ) {
+        Toast.makeText(this, "permission not granted!!", Toast.LENGTH_SHORT).show()
+        return
+    }else{
+        notificationManager1.notify(1, builder.build())
+    }
+
+
+}
 
 }
