@@ -21,7 +21,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toFile
 import com.bumptech.glide.Glide
 import com.example.myfirebaseprojectwithdb.*
-import com.example.myfirebaseprojectwithdb.application.MyApplication.Companion.sharedPref
+import com.example.myfirebaseprojectwithdb.MainActivity.Companion.sharedPref
 import com.example.myfirebaseprojectwithdb.databinding.ActivityProfileBinding
 import com.example.myfirebaseprojectwithdb.myfireobj.auth
 import com.example.myfirebaseprojectwithdb.myfireobj.storageRef
@@ -258,12 +258,15 @@ class ProfileActivity : AppCompatActivity() {
 
     fun logout(){
         auth.signOut()
-        var intent = Intent(this, MainActivity::class.java)
-        intent.putExtra(navChain.LOGGED_USER_TO_MAIN.toString(),"")
-        startActivity(intent)
-        this.finish()
         sharedPref?.edit()?.clear()?.apply()
+        var intent = Intent(this, MainActivity::class.java)
+        intent.putExtra(navChain.LOGGED_USER_TO_MAIN.toString(),"0")
+        startActivity(intent)
         logoutOperation()
+        this.finish()
+
+
+
     }
     @SuppressLint("SuspiciousIndentation")
     private fun logoutOperation(){

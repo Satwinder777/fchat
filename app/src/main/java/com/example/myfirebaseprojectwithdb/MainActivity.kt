@@ -1,15 +1,21 @@
 package com.example.myfirebaseprojectwithdb
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.UriCompat
 import androidx.core.net.toFile
@@ -57,6 +63,9 @@ class MainActivity : AppCompatActivity() {
     private val RC_SIGN_IN = 9001
     var googleProfileUri:Uri?=null
 
+    companion object{
+        var sharedPref:SharedPreferences? = null
+    }
 
 
 //@gmail.com
@@ -66,10 +75,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
     sharedPref = getSharedPreferences("my_shared_pref", Context.MODE_PRIVATE)
     editor= sharedPref.edit()
-    isUserLogged()
+
     handleIntentData()
+    isUserLogged()
     initgoogleLogin()
-    msghndle()
+//    msghndle()
 
         binding.signUpId.setOnClickListener {
                startActivity(Intent(this,CustomSignUpActivity::class.java))
@@ -90,7 +100,21 @@ class MainActivity : AppCompatActivity() {
             .addOnCompleteListener {
                 if(it.isSuccessful){
 
-//                    it.result.user.
+                    var uid  = it.result.user?.uid!!
+                    GlobalScope.launch (Dispatchers.IO){
+                        var token =  FirebaseMessaging.getInstance().token.await()
+                        Log.e("deviceToken", "login: $token", )
+                        myfireobj.db.collection("users").document(uid).update("fcmToken",token )
+                            .addOnCompleteListener{
+                                Log.e("deviceToken", "login: task completed!!", )
+                            }
+                            .addOnFailureListener{
+                                Log.e("deviceToken", "login: task failed!!>>${it.message}", )
+                            }
+
+                    }
+
+
                     Log.e("signInWithEmailAndPassword", "login: ${it.result.user?.uid}>>${auth.currentUser?.uid}", )
                     startActivity(Intent(this,LoggedUserDetails::class.java))
                     Log.d(tag, "login: successfully logged ${it.result.user?.displayName}${it.result.user?.email}")
@@ -122,13 +146,14 @@ class MainActivity : AppCompatActivity() {
         var abc:ListResult?=null
         GlobalScope.launch (Dispatchers.IO){
             abc = storageRef.child("images").listAll().await()
-            if (abc?.items?.isEmpty()?.not() ==true &&  MyApplication.sharedPref?.getString(phref.USER_UID.toString(),"").isNullOrBlank().not()){
-                Log.e("qwer111", "isUserLogged: ${abc?.items?.get(0)}", )
-                startActivity(Intent(this@MainActivity,LoggedUserDetails::class.java))
+            if (abc?.items?.isEmpty()?.not() ==true &&sharedPref?.getString(phref.USER_UID.toString(),"").isNullOrBlank().not() ){
+                Log.e("qwer111", "isUserLogged: ${sharedPref?.getString(phref.USER_UID.toString(),"")}", )
+                var intent = Intent(this@MainActivity,LoggedUserDetails::class.java)
+                intent.putExtra("my_uid",sharedPref?.getString(phref.USER_UID.toString(),""))
+                startActivity(intent)
                 finish()
             }else{
                 Log.e("qwer111", "isUserLogged: ${abc?.items?.isEmpty()?.not()}", )
-
             }
         }
 
@@ -253,77 +278,21 @@ class MainActivity : AppCompatActivity() {
             }
 
     }
-    @SuppressLint("SuspiciousIndentation")
-    private fun saveBitmapAsFile(file: File) {
-        val file = File(getExternalFilesDir(null), file.name)
 
-        try {
-            var fileRef =  storageRef.child("images/user_Profile.jpg")
-
-
-           var fileUri =  Uri.fromFile(file)
-
-
-                fileRef.putFile(fileUri)
-                    .addOnSuccessListener{
-                        //                                Log.d("FileutilsDAta", "savedata: addOnCompleteListener ${it.result.totalByteCount} ")
-                        //                            saveImgStorage(Uri.parse(user.img))
-                        Toast.makeText(this , "image uploaded successfully", Toast.LENGTH_SHORT).show()
-                    }
-                    .addOnFailureListener{
-                        Log.d("FileutilsDAta", "savedata:error while image uploading >>$fileUri>> $it")
-                        Toast.makeText(this, "error while image uploading", Toast.LENGTH_SHORT).show()
-
-                    }
-
-
-        }catch (e:Exception){
-            Log.e("FileutilsDAta12", "savedata: exp >>$e", )
-        }
-
-//        try {
-//            val stream = FileOutputStream(file)
-//            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream) // Change format and quality as needed
-//            stream.flush()
-//            stream.close()
-//            Log.e("testfileName12", "saveBitmapAsFile:${file.name} 11 ", )
-//        } catch (e: Exception) {
-//            e.printStackTrace()
-//            Log.e("testfileName12", "saveBitmapAsFile:${file.name} $e 222 ", )
-//
-//        }
-
-    }
-    private fun saveImgStorage(uri: Uri){
-        storageRef.child("images/").putFile(uri)
-            .addOnCompleteListener {
-                Log.e("saveImagetoStorage", "saveImgStorage: exp>>${it.result.metadata} ", )
-            }
-            .addOnFailureListener {
-                Log.e("saveImagetoStorage", "saveImgStorage: exp>>$it ", )
-            }
-    }
     fun msghndle(){
         FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
             if (!task.isSuccessful) {
                 Log.w("satta123", "Fetching FCM registration token failed", task.exception)
                 return@OnCompleteListener
             }
-
-            // Get new FCM registration token
             val token = task.result
-
-            // Log and toast
-//            val msg = getString(R.string.msg_token_fmt, )
             Log.d("satta123", token)
-            Toast.makeText(baseContext, token, Toast.LENGTH_SHORT).show()
         })
     }
     private fun handleIntentData(){
         var data = intent.getStringExtra(navChain.LOGGED_USER_TO_MAIN.toString())
-        if (data==navChain.LOGGED_USER_TO_MAIN.toString()){
+        if (data=="0"){
             editor.clear().apply()
-
             Log.e("dataHandle", "handleIntent: if call $data", )
         }else{
             Log.e("dataHandle", "handleIntent: if call $data", )
@@ -347,6 +316,9 @@ class MainActivity : AppCompatActivity() {
 
         return inputStream
     }
+
+
+
 
 }
 enum class navChain{

@@ -1,52 +1,46 @@
 package com.example.myfirebaseprojectwithdb
 
+import android.R
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
-
-import android.content.SharedPreferences
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.net.toFile
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
+import com.example.myfirebaseprojectwithdb.MainActivity.Companion.sharedPref
+import com.example.myfirebaseprojectwithdb.activity.profile.ProfileActivity
+import com.example.myfirebaseprojectwithdb.activity.profile.chatroom.ChatActivity
+import com.example.myfirebaseprojectwithdb.adapter.GroupChatModel
 import com.example.myfirebaseprojectwithdb.adapter.LoggedUserRcAdapter
 import com.example.myfirebaseprojectwithdb.databinding.ActivityLoggedUserDetailsBinding
 import com.example.myfirebaseprojectwithdb.myfireobj.auth
 import com.example.myfirebaseprojectwithdb.myfireobj.db
 import com.example.myfirebaseprojectwithdb.myfireobj.storageRef
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import java.io.File
-
-import android.database.Cursor
-import android.os.Parcel
-import android.os.Parcelable
-
-import android.provider.MediaStore
-import androidx.appcompat.app.AlertDialog
-import androidx.core.net.toUri
-import com.example.myfirebaseprojectwithdb.activity.profile.ProfileActivity
-import com.example.myfirebaseprojectwithdb.activity.profile.chatroom.ChatActivity
-import com.example.myfirebaseprojectwithdb.adapter.GroupChatModel
-import com.example.myfirebaseprojectwithdb.application.MyApplication.Companion.sharedPref
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.play.integrity.internal.l
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 
 class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
@@ -57,6 +51,7 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
     lateinit var mGoogleSignInClient: GoogleSignInClient
 
     var userList : MutableList<User> = mutableListOf()
+    var sname="default_satwinder"
 
 
     companion object{
@@ -64,13 +59,17 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
         var createLiveButton:MutableLiveData<Boolean> = MutableLiveData()
         var currentUserUID:String?=null
         val gson = Gson()
+        var areNotificationsEnabled = false
+
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoggedUserDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        areNotificationsEnabled = NotificationManagerCompat.from(this).areNotificationsEnabled()
         currentUserUID = sharedPref?.getString(phref.USER_UID.toString(),"")
-
+//        viewProfile()
+        checkNotificationPermission()
 
          rc = binding.loggedUserRc
         reInitdata()
@@ -99,24 +98,22 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
         }
         binding.userProfileLogged.setOnClickListener {
             val intent = Intent(this,ProfileActivity::class.java)
-            //add user data in the bundle
-            val bundle = Bundle()
+            var a1 =sharedPref?.getString(phref.USER_UID.toString(),"")
             if(user!=null){
-//                bun
-////                bundle.putString(phref.USER_UID.toString(), sharedPref?.getString(phref.PHREF_KEY.toString(),""))
-//
-////                intent.putExtra(bundle)
+
                 intent.putExtra("fname", user!!.firstName)
                 intent.putExtra("lname",user!!.lastName)
                 intent.putExtra("img",user!!.img)
                 intent.putExtra("email",user!!.email)
                 intent.putExtra("uidcode",currentUserUID)
                 var uuid = sharedPref?.getString(phref.PHREF_KEY.toString(),"")
-                Log.e(TAG, "onCreate: intentddata uid>>$currentUserUID", )
                 startActivity(intent)
+                var a =sharedPref?.getString(phref.USER_UID.toString(),"")
+                Log.e("11111", "onCreate: intentddata uid>>$a>>#$a1>$uuid")
+
             }else{
                 Toast.makeText(this, "user null", Toast.LENGTH_SHORT).show()
-                Log.e("greatcoder", "onCreate: $user", )
+                Log.e("greatcoder1", "onCreate: $user>>$a1")
             }
 
         }
@@ -127,7 +124,10 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
     {
         GlobalScope.launch {
             launch(Dispatchers.IO){
+                var uid =  intent.getStringExtra("my_uid")
+                currentUserUID = uid
                 user  = getCurrentUserDetails(currentUserUID.toString())
+                sname = user?.firstName.plus(" ").plus(user?.lastName)
                 getAllUser()
 //                        Log.e("sherGillSatta112", "onCreate:user is >>$user >>list== $data", )
             }
@@ -145,8 +145,7 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
             var myData = gson.toJson(it.data)
            var mdata =  gson.fromJson(myData,User::class.java)
             listUser.add(mdata)
-            Log.e("mData123", "getAllUser: $mdata", )
-//            dcdjcd
+
 
         }
         listUser?.removeIf {
@@ -158,22 +157,19 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
 
 
         GlobalScope.launch {
-            try {
-                if (listUser.isNullOrEmpty().not()){
-                    adapter.listUser?.clear()
+
+                if (listUser.isEmpty().not()){
+//                    adapter.listUser?.clear()
                     var adapter = LoggedUserRcAdapter(listUser,this@LoggedUserDetails)
                     launch(Dispatchers.Main){
                         rc.adapter = adapter
                     }
                     adapter.notifyDataSetChanged()
-                    Log.e(TAG+21, "getAllUser: if block data>>$listUser")
+//                    Log.e(TAG+21, "getAllUser: if block data>>$listUser")
                 }else{
-                    Log.e(TAG+21, "getAllUser: else data >>$listUser", )
+//                    Log.e(TAG + 21, "getAllUser: else data >>$listUser")
                 }
-            }
-            catch (e:Exception){
-                Log.e(TAG, "getAllUser: $e", )
-            }
+
           
         }
 
@@ -206,13 +202,13 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
 
         when(requestCode){
             code.updatecode->{
-                Log.e(TAG, "onActivityResult: $data", )
+                Log.e(TAG, "onActivityResult: $data")
                 Toast.makeText(this,"updated code call",Toast.LENGTH_SHORT).show()
 //                reInitdata()
 //                ggjg
             }
             code.createusercode->{
-                Log.e(TAG, "onActivityResult: $data", )
+                Log.e(TAG, "onActivityResult: $data")
                 Toast.makeText(this,"create user code call",Toast.LENGTH_SHORT).show()
 //                reInitdata()
             }
@@ -227,19 +223,26 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
     }
 
     override fun itemCliked(user: User) {
-        try {
-            val intent = Intent(this,ChatActivity::class.java)
-            intent.putExtra("userId",user.userid)
-            intent.putExtra("name",user.firstName)
-            intent.putExtra("image",user.img)
-            intent.putExtra("senderUid",currentUserUID.toString())
-            intent.putExtra("fcm_token",user.fcmToken)
+        areNotificationsEnabled = NotificationManagerCompat.from(this).areNotificationsEnabled()
+        if(!areNotificationsEnabled){
+            showEnableNotificationPrompt(this)
+        }else{
+            try {
+                val intent = Intent(this,ChatActivity::class.java)
+                intent.putExtra("userId",user.userid)
+                intent.putExtra("name",user.firstName)
+                intent.putExtra("image",user.img)
+                intent.putExtra("sender_name",sname)
+                intent.putExtra("senderUid",currentUserUID.toString())
+                intent.putExtra("fcm_token",user.fcmToken)
 
-            OpenChatRoom(intent)
+                OpenChatRoom(intent)
+            }
+            catch (e:Exception){
+                Log.e("DownLoadListner", "itemCliked: $e")
+            }
         }
-        catch (e:Exception){
-            Log.e("DownLoadListner", "itemCliked: $e", )
-        }
+
     }
 
     override fun ongroupItemClicked() {
@@ -251,13 +254,14 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
             val intent = Intent(this,ChatActivity::class.java)
             intent.putExtra("userId",user?.userid)
             intent.putExtra("name",name)
+            intent.putExtra("sender_name",sname)
             intent.putExtra("image",img)
             intent.putExtra("senderUid",currentUserUID.toString())
             intent.putExtra("fcm_token",user?.fcmToken)
             OpenChatRoom(intent)
         }
         catch (e:Exception){
-            Log.e("DownLoadListner", "itemCliked: $e", )
+            Log.e("DownLoadListner", "itemCliked: $e")
         }
     }
 
@@ -304,36 +308,43 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
 //                        Log.d("FileDeleted", "deleteFromStorage: ${it}>>successfully deleted fileref${user.img?.toUri()?.toFile()?.name}")
                     }
                     .addOnFailureListener {
-                        Log.e("FileDeleted", "deleteFromStorage: $it", )
+                        Log.e("FileDeleted", "deleteFromStorage: $it")
                     }
         }
 
 
     private suspend fun getCurrentUserDetails(uid:String):User?{
         var mdata :User?=null
-        var fname=""
-        var lname=""
-        var img=""
-        var password=""
-        var email=""
-        var uid1=""
+        var a1 =sharedPref?.getString(phref.USER_UID.toString(),"")
+        if (uid.isNullOrBlank()){
+            Toast.makeText(this, "nullor blank call ", Toast.LENGTH_SHORT).show()
+        }else{
+            var fname=""
+            var lname=""
+            var img=""
+            var password=""
+            var email=""
+            var uid1=""
 
 
-       var a= db.collection("users").document(uid).get().await()
+            var a= db.collection("users").document(uid).get().await()
 
-        img = a.get("img").toString()
-        fname = a.get("firstName").toString()
-        lname = a.get("lastName").toString()
-        email = a.get("email").toString()
-        password = a.get("password").toString()
-        uid1 = a.get("userid").toString()
-        user = User(img,fname,lname,email,password,uid1)
-        mdata = user
-        Log.e("abczz", "getCurrentUserDetails: $user", )
+            img = a.get("img").toString()
+            fname = a.get("firstName").toString()
+            lname = a.get("lastName").toString()
+            email = a.get("email").toString()
+            password = a.get("password").toString()
+            uid1 = a.get("userid").toString()
+            user = User(img,fname,lname,email,password,uid1)
+            mdata = user
+            Log.e("abczz", "getCurrentUserDetails: $user>>$a1")
 
 
 
-        Log.e(TAG+43, "getCurrentUserDetails: $user", )
+//            Log.e(TAG + 43, "getCurrentUserDetails: $user")
+        }
+
+
         return mdata
     }
 
@@ -364,7 +375,7 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
 
                     list?.removeIf {
                         it as User
-                        Log.e("mData1239", "getAllUser:removed ${it.userid}>>${user?.userid}",)
+                        Log.e("mData1239", "getAllUser:removed ${it.userid}>>${user?.userid}")
                         it.userid == user?.userid
                     }
                     GlobalScope.launch(Dispatchers.Main){
@@ -374,11 +385,14 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
                             rc.adapter = adapter
                             adapter.notifyDataSetChanged()
 //                            Toast.makeText(this@LoggedUserDetails, "adapter data added!!", Toast.LENGTH_SHORT).show()
-                            Log.e(TAG, "HandleListner: task adaper done data added" +
-                                    "$list", )
+                            Log.e(
+                                TAG,
+                                "HandleListner: task adaper done data added" +
+                                        "$list",
+                            )
                         }else{
 //                            Toast.makeText(this@LoggedUserDetails, "adapter null", Toast.LENGTH_SHORT).show()
-                            Log.e(TAG, "HandleListner: task adaper null!!", )
+                            Log.e(TAG, "HandleListner: task adaper null!!")
 
                         }
 //                        try {
@@ -398,14 +412,14 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
 //                            Log.e(TAG, "getAllUser: $e",)
 //                        }
                     }
-                    Log.e("handleLitnerError2", "HandleListner: $value", )
+                    Log.e("handleLitnerError2", "HandleListner: $value")
 
                 }
-                Log.e("handleLitnerError1", "HandleListner: $error", )
+                Log.e("handleLitnerError1", "HandleListner: $error")
                 adapter.notifyDataSetChanged()
             }
             catch(e:Exception){
-                Log.e("mytest", "HandleListner: ${e.message}>>$error", )
+                Log.e("mytest", "HandleListner: ${e.message}>>$error")
             }
 
 
@@ -428,8 +442,51 @@ class LoggedUserDetails : AppCompatActivity(),LoggedUserRcAdapter.onItemClick {
         dialog.show()
     }
 
+    fun checkNotificationPermission():Boolean{
+
+         if (!areNotificationsEnabled) {
+            // Notifications are not enabled, show the prompt
+
+            showEnableNotificationPrompt(this)
+
+        } else {
+            // Proceed with using the feature that requires notifications
+//            Toast.makeText(this, "notification already granted!", Toast.LENGTH_SHORT).show()
+        }
+        return areNotificationsEnabled
+    }
+
+    fun showEnableNotificationPrompt(context: Context) {
+        val builder = AlertDialog.Builder(context)
+        builder.setTitle("Enable Notifications")
+        builder.setMessage("To receive important updates, please enable notifications in the app settings.")
+        builder.setPositiveButton("Open Settings") { _, _ ->
+            openNotificationSettings(context)
+        }
+        builder.setNegativeButton("Cancel") { dialog, _ ->
+            dialog.dismiss()
+        }
+        val dialog = builder.create()
+        dialog.show()
+    }
+    fun openNotificationSettings(context: Context) {
+        val intent = Intent()
+        intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+        val uri = Uri.fromParts("package", context.packageName, null)
+        intent.data = uri
+        context.startActivity(intent)
+    }
+
+//    fun viewProfile(){
+////        sharedPref?.edit()?.putString(phref.USER_UID.toString(),demoUser)?.apply()
+//       var userId_ =  sharedPref?.getString(phref.USER_UID.toString(),"default_")
+//
+//        Log.e("test321", "viewProfile: $userId_>>$uid", )
+//    }
 
 }
+
+
 enum class userCodes{
     FIRST_NAME,
     LAST_NAME,
@@ -467,45 +524,9 @@ data class User(
     var fcmToken:String?=null
 
 
-//)
+
 )
-/**
- *
- *  : Parcelable {
-constructor(parcel: Parcel) : this(
-parcel.readString()?:"",
-parcel.readString()?:"",
-parcel.readString()?:"",
-parcel.readString()?:"",
-parcel.readString()?:"",
-parcel.readString()
-) {
-}
 
-override fun writeToParcel(parcel: Parcel, flags: Int) {
-parcel.writeString(img)
-parcel.writeString(firstName)
-parcel.writeString(lastName)
-parcel.writeString(email)
-parcel.writeString(password)
-parcel.writeString(userid)
-}
-
-override fun describeContents(): Int {
-return 0
-}
-
-companion object CREATOR : Parcelable.Creator<User> {
-override fun createFromParcel(parcel: Parcel): User {
-return User(parcel)
-}
-
-override fun newArray(size: Int): Array<User?> {
-return arrayOfNulls(size)
-}
-}
-}
- */
 
 
 

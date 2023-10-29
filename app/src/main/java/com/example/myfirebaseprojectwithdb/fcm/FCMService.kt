@@ -2,6 +2,7 @@ package com.example.myfirebaseprojectwithdb.fcm
 
 import com.example.myfirebaseprojectwithdb.fcm.model.FCMRequest
 import com.example.myfirebaseprojectwithdb.fcm.model.FCMResponse
+import com.example.myfirebaseprojectwithdb.fcm.model.MessageRequest
 import com.example.myfirebaseprojectwithdb.retrofit.RetroIns
 import retrofit2.Call
 import retrofit2.http.Body
@@ -12,5 +13,5 @@ const val key = "AAAArPJjryQ:APA91bG3fRvaxNf5L48JkjsG1JforqUxVVIHxYV0Cb_eu95oG5z
 interface FCMService {
     @Headers("Authorization:key=$key", "Content-Type: application/json")
     @POST("fcm/send")
-    fun sendNotification(@Body request: FCMRequest): Call<FCMResponse>
+    fun sendNotification(@Body request: MessageRequest): Call<FCMResponse>
 }

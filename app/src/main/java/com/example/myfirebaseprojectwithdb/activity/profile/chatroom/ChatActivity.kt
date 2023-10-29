@@ -13,6 +13,8 @@ import com.example.myfirebaseprojectwithdb.activity.profile.chatroom.adapters.Ch
 import com.example.myfirebaseprojectwithdb.databinding.ActivityChatBinding
 import com.example.myfirebaseprojectwithdb.fcm.model.FCMRequest
 import com.example.myfirebaseprojectwithdb.fcm.model.FCMResponse
+import com.example.myfirebaseprojectwithdb.fcm.model.MessageRequest
+import com.example.myfirebaseprojectwithdb.fcm.model.Notification
 import com.example.myfirebaseprojectwithdb.myfireobj.db
 import com.example.myfirebaseprojectwithdb.retrofit.RetroIns
 import com.google.firebase.messaging.FirebaseMessaging
@@ -30,7 +32,7 @@ class ChatActivity : AppCompatActivity() {
     lateinit var chatrc:RecyclerView
     lateinit var chatRoomId:String
     var adapter: ChatRcAdapter?=null
-
+    var sender_name = "chat_user"
     lateinit var arr :ArrayList<chatMessage>
     companion object{
         val TAG = "ChatActivity12"
@@ -48,6 +50,8 @@ class ChatActivity : AppCompatActivity() {
         var receiveruid = intent.getStringExtra("userId")
         var senderuid = intent.getStringExtra("senderUid")
         var fcm_token = intent.getStringExtra("fcm_token")
+        sender_name = intent.getStringExtra("sender_name").toString()
+//        intent.putExtra("sender_name",sname)
         arr = arrayListOf<chatMessage>()
         chatRoomId  = getChatRoomId(senderuid!!,receiveruid!!)
         Log.e(TAG, "initData: $receiveruid", )
@@ -88,23 +92,30 @@ class ChatActivity : AppCompatActivity() {
 //                Toast.makeText(this, "data updated!!", Toast.LENGTH_SHORT).show()
 //                Log.e(TAG, "sendMsg: ${it.id}", )
 
-                var map = hashMapOf<String,String>()
-                map["title"] = "satwinder"
-                map["body"] = "satwindershergill"
+//                var map = hashMapOf<String,String>()
+//                map["title"] = "satwinder"
+//                map["body"] = "satwindershergill"
+//                map["subtitle"] = "satwindershergill_subtitle"
 //                val message = RemoteMessage.Builder(fcm_token)
 //                    .setData(mapOf("msg" to "dsd")) // Add your message content
 //                    .build()
 //                FirebaseMessaging.getInstance().send(message)
-
+               var msg =  MessageRequest(to = fcm_token, notification = Notification(body = msg, subtitle = "satwinder",sender_name))
                 Log.e("myfcm", "sendMsg: $fcm_token", )
-                val message = FCMRequest(fcm_token, map)
+//                val message = FCMRequest(fcm_token, map)
 
-                RetroIns.fcmservice.sendNotification(message)
+                RetroIns.fcmservice.sendNotification(msg)
                     .enqueue(object : Callback<FCMResponse> {
                         override fun onResponse(call: Call<FCMResponse>, response: Response<FCMResponse>) {
                             if (response.isSuccessful) {
                                 val fcmResponse = response.body()
                                 Log.e("testcase1212", "onSuccess: ${fcmResponse}", )
+                                if (fcmResponse?.success==1){
+                                    Toast.makeText(this@ChatActivity, "msg send !", Toast.LENGTH_SHORT).show()
+                                }else{
+                                    Toast.makeText(this@ChatActivity, "msg not sended!! !", Toast.LENGTH_SHORT).show()
+
+                                }
 
                             } else {
                                 Log.e("testcase1212", "onSuccess: not success>>${response.message()}", )

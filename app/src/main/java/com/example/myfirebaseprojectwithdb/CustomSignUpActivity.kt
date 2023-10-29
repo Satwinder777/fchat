@@ -29,7 +29,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
-import com.example.myfirebaseprojectwithdb.application.MyApplication.Companion.sharedPref
+import com.example.myfirebaseprojectwithdb.MainActivity.Companion.sharedPref
 import com.example.myfirebaseprojectwithdb.databinding.ActivityCustomSignUpBinding
 import com.example.myfirebaseprojectwithdb.myfireobj.auth
 import com.example.myfirebaseprojectwithdb.myfireobj.database
@@ -223,7 +223,7 @@ class CustomSignUpActivity : AppCompatActivity() {
                 Log.e("demousers", "loginUsingEmailPassword1: $demoUser>>", )
                 if(it.isSuccessful&&demoUser.isNullOrBlank().not()){
 
-
+                    sharedPref?.edit()?.putString(phref.USER_UID.toString(),demoUser)?.apply()
 //                    Log.e(TAG, "loginUsingEmailPassword2: $demoUser>>", )
 
                     storageRef.child("images/${demoUser}").putFile(profileUri!!)
